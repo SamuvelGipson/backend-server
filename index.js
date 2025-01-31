@@ -1,24 +1,29 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
 import UserRoutes from "./routes/User.js";
 
+dotenv.config(); // Load environment variables
+
 const app = express();
-// app.use(cors());
+
+// Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // for form data
+app.use(express.urlencoded({ extended: true }));
 
-// const cors = require("cors");
+// CORS Configuration
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Change this in production
+    credentials: true, // Allow cookies/auth tokens
+  })
+);
 
-// Allow requests from frontend
-app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true,  // Allow cookies/auth tokens
-}));
+// Routes
+app.use("/api/user", UserRoutes);
 
-
-app.use("/api/user/", UserRoutes);
-// error handler
+// Error Handling Middleware
 app.use((err, req, res, next) => {
   const status = err.status || 500;
   const message = err.message || "Something went wrong";
@@ -29,29 +34,35 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.get("/", async (req, res) => {
-  res.status(200).json({
-    message: "Hello developers from GFG",
-  });
+// Test Route
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Hello developers from GFG" });
 });
 
-const connectDB = () => {
-  mongoose.set("strictQuery", true);
-  mongoose
-    .connect("mongodb://localhost:27017/sece")
-    .then(() => console.log("Connected to Mongo DB"))
-    .catch((err) => {
-      console.error("failed to connect with mongo");
-      console.error(err);
+// MongoDB Connection
+const connectDB = async () => {
+  try {
+    mongoose.set("strictQuery", true);
+    await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/sece", {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
+    console.log("✅ Connected to MongoDB");
+  } catch (error) {
+    console.error("❌ Failed to connect to MongoDB", error);
+    process.exit(1); // Exit process with failure
+  }
 };
+
+// Start Server
+const PORT = process.env.PORT || 8000;
 
 const startServer = async () => {
   try {
-    connectDB();
-    app.listen(8000, () => console.log("Server started on port 8080"));
+    await connectDB();
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   } catch (error) {
-    console.log(error);
+    console.log("❌ Server startup error:", error);
   }
 };
 
