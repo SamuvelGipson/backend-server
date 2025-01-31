@@ -43,7 +43,7 @@ app.get("/", (req, res) => {
 const connectDB = async () => {
   try {
     mongoose.set("strictQuery", true);
-    await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/sece", {
+    await mongoose.connect(process.env.MONGO_URI || "mongodb+srv://samgipson:sam12345@cluster0.2w7cx.mongodb.net/fitness", {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
